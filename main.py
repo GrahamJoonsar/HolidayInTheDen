@@ -83,6 +83,7 @@ class Snowman(pygame.sprite.Sprite):
 
 snowManList = pygame.sprite.Group()
 
+# Initializing Players
 for i in range(numOfPlayers):
     snowManList.add(Snowman(i, pygame.image.load("snowman.png").convert_alpha()))
 
@@ -116,11 +117,6 @@ while running:
             s.xVel += 0.1
             break
 
-    mousex, mousey = pygame.mouse.get_pos()
-
-    #snowManList[0].x = mousex
-    #snowManList[0].y = mousey
-
     win.fill((100, 100, 255))
 
     
@@ -128,15 +124,6 @@ while running:
     snowManList.draw(win)
     snowManList.update(snowManList)
 
-    #for snowman in snowManList: # Main player update loop
-    #    #snowman.draw() # Draw each player to the screen
-    #    snowman.update() # Move each player according to their velocities
-    #    for snowman2 in snowManList: # Looping through again for collision
-    #        # If collision
-    #        if distance(snowman.x, snowman.y, snowman2.x, snowman2.y) <= 40 and snowman.number != snowman2.number:
-    #            # Collide the two players
-    #            snowman.collide(snowman2.x, snowman2.y)
-    #            snowman2.collide(snowman.x, snowman.y)
 
     pygame.display.update()
 
