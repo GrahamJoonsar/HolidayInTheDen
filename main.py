@@ -29,7 +29,7 @@ class Snowman(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.trueImage = pygame.transform.scale(img, (50, 50))
         self.image = pygame.transform.scale(img, (50, 50))
-        #self.image.fill(SnowManColors[snowManNumber])
+        #self.trueImage.fill((100, 100, 255))
         self.rect = self.image.get_rect()
 
         # Arranging the players in a circle
@@ -58,15 +58,21 @@ class Snowman(pygame.sprite.Sprite):
         else:
             self.yVel = 0
 
-        self.image = pygame.transform.rotate(self.trueImage, math.atan2(self.yVel, self.xVel)/math.pi*180*2)
+        ## Rotating the sprite towards the direction its going
+        # Getting the angle for rotation
+        angle = math.atan2(self.yVel, self.xVel)/math.pi*180 - 90
+        angle = -180 - angle
+        
+        self.image = pygame.transform.rotate(self.trueImage, angle)
         temp = self.rect
         self.rect = self.image.get_rect()
         self.rect.centerx = temp.centerx
         self.rect.centery = temp.centery
-        pygame.draw.line(win, (0, 0, 0), 
-        (self.rect.centerx, self.rect.centery), 
-        (self.rect.centerx + math.cos(math.atan2(self.yVel, self.xVel))*40,
-        self.rect.centery + math.sin(math.atan2(self.yVel, self.xVel))*40), 2)
+        # Debugging line showing direction
+        #pygame.draw.line(win, (0, 0, 0), 
+        #(self.rect.centerx, self.rect.centery), 
+        #(self.rect.centerx + math.cos(math.atan2(self.yVel, self.xVel))*40,
+        #self.rect.centery + math.sin(math.atan2(self.yVel, self.xVel))*40), 2)
         
         for otherSnowman in others:
             if otherSnowman.number != self.number:
@@ -78,7 +84,7 @@ class Snowman(pygame.sprite.Sprite):
 snowManList = pygame.sprite.Group()
 
 for i in range(numOfPlayers):
-    snowManList.add(Snowman(i, pygame.image.load("snowman.png").convert()))
+    snowManList.add(Snowman(i, pygame.image.load("snowman.png").convert_alpha()))
 
 # Main game Loop
 running = True
@@ -91,6 +97,24 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w]:
+        for s in snowManList:
+            s.yVel -= 0.1
+            break
+    if keys[pygame.K_s]:
+        for s in snowManList:
+            s.yVel += 0.1
+            break
+    if keys[pygame.K_a]:
+        for s in snowManList:
+            s.xVel -= 0.1
+            break
+    if keys[pygame.K_d]:
+        for s in snowManList:
+            s.xVel += 0.1
+            break
 
     mousex, mousey = pygame.mouse.get_pos()
 
@@ -99,10 +123,7 @@ while running:
 
     win.fill((100, 100, 255))
 
-    for s in snowManList:
-        s.rect.centerx = pygame.mouse.get_pos()[0]
-        s.rect.centery = pygame.mouse.get_pos()[1]
-        break
+    
 
     snowManList.draw(win)
     snowManList.update(snowManList)
