@@ -105,18 +105,23 @@ class HoleInIce(pygame.sprite.Sprite):
         # Arranging the players in a circle
         self.rect.center = (1, 1)
 
-    def changeLocation(self, otherHoles, otherPresents):
+    def changeLocation(self, otherHoles, otherPresents, players):
         newX = random.randint(0, windowWidth - 76)
         newY = random.randint(0, windowHeight - 51)
 
         for hole in otherHoles:
             if distance(hole.rect.centerx, hole.rect.centery, newX, newY) < 100:
-                self.changeLocation(otherHoles, otherPresents)
+                self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         for present in otherPresents:
             if distance(present.rect.centerx, present.rect.centery, newX, newY) < 100:
-                self.changeLocation(otherHoles, otherPresents)
+                self.changeLocation(otherHoles, otherPresents, players)
+                return
+
+        for p in players:
+            if distance(p.rect.centerx, p.rect.centery, newX, newY) < 100:
+                self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         self.rect.centerx = newX
@@ -133,18 +138,23 @@ class Present(pygame.sprite.Sprite):
         # Arranging the players in a circle
         self.rect.center = (1, 1)
 
-    def changeLocation(self, otherHoles, otherPresents):
+    def changeLocation(self, otherHoles, otherPresents, players):
         newX = random.randint(0, windowWidth - 76)
         newY = random.randint(0, windowHeight - 51)
 
         for hole in otherHoles:
             if distance(hole.rect.centerx, hole.rect.centery, newX, newY) < 100:
-                self.changeLocation(otherHoles, otherPresents)
+                self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         for present in otherPresents:
             if distance(present.rect.centerx, present.rect.centery, newX, newY) < 100:
-                self.changeLocation(otherHoles, otherPresents)
+                self.changeLocation(otherHoles, otherPresents, players)
+                return
+
+        for p in players:
+            if distance(p.rect.centerx, p.rect.centery, newX, newY) < 100:
+                self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         self.rect.centerx = newX
@@ -154,7 +164,7 @@ class Present(pygame.sprite.Sprite):
         for p in pList:
             if distance(p.rect.centerx, p.rect.centery, self.rect.centerx, self.rect.centery) < 55:
                 p.score += 1
-                self.changeLocation(oholes, opresents)
+                self.changeLocation(oholes, opresents, pList)
 
 
 # All of the players
@@ -185,7 +195,7 @@ for i in range(numOfHoles):
     holeList.add(HoleInIce(holeImg))
 
 for hole in holeList:
-    hole.changeLocation(holeList, presentList)
+    hole.changeLocation(holeList, presentList, snowManList)
 
 # Initializing the presents
 presentImg = pygame.image.load("present.png").convert_alpha()
@@ -193,7 +203,7 @@ for i in range(numOfPresents):
     presentList.add(Present(presentImg))
 
 for p in presentList:
-    p.changeLocation(holeList, presentList)
+    p.changeLocation(holeList, presentList, snowManList)
 
 # Main game Loop
 running = True
@@ -227,9 +237,9 @@ while running:
             break
     if keys[pygame.K_r]:
         for p in presentList:
-            p.changeLocation(holeList, presentList)
+            p.changeLocation(holeList, presentList, snowManList)
         for h in holeList:
-            h.changeLocation(holeList, presentList)
+            h.changeLocation(holeList, presentList, snowManList)
 
     win.fill((140, 140, 255))
     
