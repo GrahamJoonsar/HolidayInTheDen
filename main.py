@@ -20,14 +20,14 @@ numOfPresents = 12
 
 bounciness = 3
 
-SnowManColors = [(255, 0, 0), 
-                (0, 255, 0),
-                (0, 0, 255), 
-                (255, 255, 0), 
-                (255, 0, 255), 
-                (0, 255, 255), 
-                (255, 100, 100), 
-                (165, 42, 42)]
+SnowManColors = [(255, 0, 0, 255), 
+                (0, 255, 0, 255),
+                (0, 0, 255, 255), 
+                (255, 255, 0, 255), 
+                (255, 0, 255, 255), 
+                (0, 255, 255, 255), 
+                (255, 100, 100, 255), 
+                (165, 42, 42, 255)]
 
 
 def distance(x1, y1, x2, y2):
@@ -99,7 +99,7 @@ class HoleInIce(pygame.sprite.Sprite):
     def __init__(self, img):
         # Sprite stuff
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(img, (75, 30))
+        self.image = pygame.transform.scale(img, (75, 75))
 
         self.rect = self.image.get_rect()
         # Arranging the players in a circle
@@ -162,20 +162,35 @@ snowManList = pygame.sprite.Group()
 holeList = pygame.sprite.Group()
 presentList = pygame.sprite.Group()
 
-# Initializing Players
+playerImg = pygame.image.load("penguin.png").convert_alpha()
+
+def changeScarfColor(playerNum):
+    w, h = playerImg.get_size() # width and height of the img
+    temp = playerImg.copy()
+    for x in range(w):
+        for y in range(h):
+            if temp.get_at((x, y)) == pygame.Color(252, 255, 2, 255): # default scarf color
+                temp.set_at((x, y), SnowManColors[playerNum])
+    return temp
+
+
+# Initialixing players
 for i in range(numOfPlayers):
-    snowManList.add(Snowman(i, pygame.image.load("penguin.png").convert_alpha()))
+    changeScarfColor(i)
+    snowManList.add(Snowman(i, changeScarfColor(i)))
 
 # Initializing the holes
+holeImg = pygame.image.load("holeInIce.png").convert_alpha()
 for i in range(numOfHoles):
-    holeList.add(HoleInIce(pygame.image.load("holeInIce.png").convert_alpha()))
+    holeList.add(HoleInIce(holeImg))
 
 for hole in holeList:
     hole.changeLocation(holeList, presentList)
 
 # Initializing the presents
+presentImg = pygame.image.load("present.png").convert_alpha()
 for i in range(numOfPresents):
-    presentList.add(Present(pygame.image.load("present.png").convert_alpha()))
+    presentList.add(Present(presentImg))
 
 for p in presentList:
     p.changeLocation(holeList, presentList)
