@@ -64,10 +64,10 @@ class Penguin(pygame.sprite.Sprite):
         self.sideLen = 75
 
     def update(self, others):
-        if self.number == 0:
+        if self.number < pygame.joystick.get_count():
             self.xVel += pygame.joystick.Joystick(self.number).get_axis(0) * 0.1
             self.yVel += pygame.joystick.Joystick(self.number).get_axis(1) * 0.1
-            if not self.airborne and pygame.joystick.Joystick(self.number).get_button(2):
+            if not self.airborne and joysticks[self.number].get_button(2):
                 self.touchdownTime = 50
                 self.airborne = True
 
