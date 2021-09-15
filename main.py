@@ -9,10 +9,18 @@ windowHeight = 768
 
 pygame.init()
 win = pygame.display.set_mode((windowWidth, windowHeight))
-pygame.display.set_caption("SnowMan")
+pygame.display.set_caption("Penguin")
 
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', 30)
+
+pygame.joystick.init()
+if pygame.joystick.get_count() != 8:
+    print("ERROR: Incorrect number of joysticks")
+    print("There are only " + str(pygame.joystick.get_count()) + " joysticks.")
+
+# Initializing all joysticks
+joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
 
 numOfPlayers = 8
 numOfHoles = 10
@@ -34,7 +42,7 @@ def distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
 # Snowman(Player) class
-class Snowman(pygame.sprite.Sprite):
+class Penguin(pygame.sprite.Sprite):
     def __init__(self, snowManNumber, img):
         # Sprite stuff
         pygame.sprite.Sprite.__init__(self)
@@ -50,10 +58,19 @@ class Snowman(pygame.sprite.Sprite):
         self.xVel = 0
         self.yVel = 0
         self.score = 0
+        self.airborne = False
         self.color = SnowManColors[snowManNumber]
-        
+        self.touchdownTime = 50
+        self.sideLen = 75
 
     def update(self, others):
+        if self.number == 0:
+            self.xVel += pygame.joystick.Joystick(self.number).get_axis(0) * 0.1
+            self.yVel += pygame.joystick.Joystick(self.number).get_axis(1) * 0.1
+            if not self.airborne and pygame.joystick.Joystick(self.number).get_button(2):
+                self.touchdownTime = 50
+                self.airborne = True
+
         # Movement by velocities
         if 20 < self.rect.centerx + self.xVel < windowWidth - 20:
             self.rect.centerx += self.xVel
@@ -74,7 +91,8 @@ class Snowman(pygame.sprite.Sprite):
         angle = -180 - angle
         
         # Rotating the actual image
-        self.image = pygame.transform.rotate(self.trueImage, angle)
+        self.image = pygame.transform.scale(self.trueImage, (self.sideLen, self.sideLen))
+        self.image = pygame.transform.rotate(self.image, angle)
         temp = self.rect
         self.rect = self.image.get_rect()
         self.rect.centerx = temp.centerx
@@ -89,11 +107,21 @@ class Snowman(pygame.sprite.Sprite):
         
         # Collision
         for otherSnowman in others:
-            if otherSnowman.number != self.number:
+            if otherSnowman.number != self.number and self.airborne == otherSnowman.airborne:
                 if distance(self.rect.centerx, self.rect.centery, otherSnowman.rect.centerx, otherSnowman.rect.centery) <= 50:
                     angle = math.atan2(self.rect.centery - otherSnowman.rect.centery, self.rect.centerx - otherSnowman.rect.centerx)
                     self.xVel = math.cos(angle) * bounciness
                     self.yVel = math.sin(angle) * bounciness
+
+        if self.airborne:
+            self.touchdownTime -= 1
+            if self.touchdownTime > 25:
+                self.sideLen += 1
+            elif 0 < self.touchdownTime <= 25:
+                self.sideLen -= 1
+            if self.touchdownTime <= 0:
+                self.airborne = False
+                self.sideLen = 75
 
 class HoleInIce(pygame.sprite.Sprite):
     def __init__(self, img):
@@ -162,7 +190,7 @@ class Present(pygame.sprite.Sprite):
 
     def update(self, pList, oholes, opresents):
         for p in pList:
-            if distance(p.rect.centerx, p.rect.centery, self.rect.centerx, self.rect.centery) < 55:
+            if not p.airborne and distance(p.rect.centerx, p.rect.centery, self.rect.centerx, self.rect.centery) < 55:
                 p.score += 1
                 self.changeLocation(oholes, opresents, pList)
 
@@ -186,8 +214,7 @@ def changeScarfColor(playerNum):
 
 # Initialixing players
 for i in range(numOfPlayers):
-    changeScarfColor(i)
-    snowManList.add(Snowman(i, changeScarfColor(i)))
+    snowManList.add(Penguin(i, changeScarfColor(i)))
 
 # Initializing the holes
 holeImg = pygame.image.load("holeInIce.png").convert_alpha()
@@ -216,7 +243,7 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            
+
     # Test movement
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
@@ -245,7 +272,13 @@ while running:
     
     holeList.draw(win)
     presentList.draw(win)
-    snowManList.draw(win)
+    for s in snowManList:
+        if not s.airborne:
+            win.blit(s.image, s.rect)
+    
+    for s in snowManList:
+        if s.airborne:
+            win.blit(s.image, s.rect)
 
     snowManList.update(snowManList)
     presentList.update(snowManList, holeList, presentList)
