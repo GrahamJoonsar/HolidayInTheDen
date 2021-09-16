@@ -38,8 +38,8 @@ SnowManColors = [(255, 0, 0, 255),
                 (165, 42, 42, 255)]
 
 
-def distance(x1, y1, x2, y2):
-    return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+def distance(x1, y1, x2, y2, val):
+    return (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) <= val*val
 
 # Snowman(Player) class
 class Penguin(pygame.sprite.Sprite):
@@ -83,6 +83,8 @@ class Penguin(pygame.sprite.Sprite):
                 self.yVel = 0
                 self.sideLen = 75
                 self.score -= 5
+                if self.score < 0:
+                    self.score = 0
                 self.drowning = False
                 self.rect.center = (math.cos(2*math.pi/numOfPlayers*(self.number+1)) * 200 + windowWidth/2,
                                     math.sin(2*math.pi/numOfPlayers*(self.number+1)) * 200 + windowHeight/2)
@@ -93,8 +95,8 @@ class Penguin(pygame.sprite.Sprite):
 
 
         if self.number < pygame.joystick.get_count():
-            self.xVel += pygame.joystick.Joystick(self.number).get_axis(0) * 0.1
-            self.yVel += pygame.joystick.Joystick(self.number).get_axis(1) * 0.1
+            self.xVel += pygame.joystick.Joystick(self.number).get_axis(0) * 0.15
+            self.yVel += pygame.joystick.Joystick(self.number).get_axis(1) * 0.15
             if not self.airborne and joysticks[self.number].get_button(2):
                 self.touchdownTime = 50
                 self.airborne = True
@@ -136,7 +138,7 @@ class Penguin(pygame.sprite.Sprite):
         # Collision
         for otherSnowman in others:
             if otherSnowman.number != self.number and self.airborne == otherSnowman.airborne and self.drowning == otherSnowman.drowning:
-                if distance(self.rect.centerx, self.rect.centery, otherSnowman.rect.centerx, otherSnowman.rect.centery) <= 50:
+                if distance(self.rect.centerx, self.rect.centery, otherSnowman.rect.centerx, otherSnowman.rect.centery, 50):
                     angle = math.atan2(self.rect.centery - otherSnowman.rect.centery, self.rect.centerx - otherSnowman.rect.centerx)
                     self.xVel = math.cos(angle) * bounciness
                     self.yVel = math.sin(angle) * bounciness
@@ -163,7 +165,7 @@ class HoleInIce(pygame.sprite.Sprite):
 
     def update(self, playerz):
         for currentP in playerz:
-            if not currentP.airborne and distance(self.rect.centerx, self.rect.centery, currentP.rect.centerx, currentP.rect.centery) < 37.5:
+            if not currentP.airborne and distance(self.rect.centerx, self.rect.centery, currentP.rect.centerx, currentP.rect.centery, 37.5):
                 currentP.drowning = True
 
     def changeLocation(self, otherHoles, otherPresents, players):
@@ -171,17 +173,17 @@ class HoleInIce(pygame.sprite.Sprite):
         newY = random.randint(0, windowHeight - 51)
 
         for hole in otherHoles:
-            if distance(hole.rect.centerx, hole.rect.centery, newX, newY) < 100:
+            if distance(hole.rect.centerx, hole.rect.centery, newX, newY, 100):
                 self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         for present in otherPresents:
-            if distance(present.rect.centerx, present.rect.centery, newX, newY) < 100:
+            if distance(present.rect.centerx, present.rect.centery, newX, newY, 100):
                 self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         for p in players:
-            if distance(p.rect.centerx, p.rect.centery, newX, newY) < 100:
+            if distance(p.rect.centerx, p.rect.centery, newX, newY, 100):
                 self.changeLocation(otherHoles, otherPresents, players)
                 return
 
@@ -204,17 +206,17 @@ class Present(pygame.sprite.Sprite):
         newY = random.randint(0, windowHeight - 51)
 
         for hole in otherHoles:
-            if distance(hole.rect.centerx, hole.rect.centery, newX, newY) < 100:
+            if distance(hole.rect.centerx, hole.rect.centery, newX, newY, 100):
                 self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         for present in otherPresents:
-            if distance(present.rect.centerx, present.rect.centery, newX, newY) < 100:
+            if distance(present.rect.centerx, present.rect.centery, newX, newY, 100):
                 self.changeLocation(otherHoles, otherPresents, players)
                 return
 
         for p in players:
-            if distance(p.rect.centerx, p.rect.centery, newX, newY) < 100:
+            if distance(p.rect.centerx, p.rect.centery, newX, newY, 100):
                 self.changeLocation(otherHoles, otherPresents, players)
                 return
 
@@ -223,7 +225,7 @@ class Present(pygame.sprite.Sprite):
 
     def update(self, pList, oholes, opresents):
         for p in pList:
-            if not p.airborne and distance(p.rect.centerx, p.rect.centery, self.rect.centerx, self.rect.centery) < 55:
+            if not p.airborne and distance(p.rect.centerx, p.rect.centery, self.rect.centerx, self.rect.centery, 55):
                 p.score += 1
                 self.changeLocation(oholes, opresents, pList)
 
