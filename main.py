@@ -63,12 +63,23 @@ class Penguin(pygame.sprite.Sprite):
         self.color = SnowManColors[snowManNumber]
         self.touchdownTime = 50
         self.sideLen = 75
+        self.iceHoleX = 0
+        self.iceHoleY = 0
 
     def update(self, others):
 
         if self.drowning:
             if self.sideLen > 0:
                 self.sideLen -= 1
+                if self.rect.centerx < self.iceHoleX:
+                    self.rect.centerx += 1
+                elif self.rect.centerx > self.iceHoleX:
+                    self.rect.centerx -= 1
+
+                if self.rect.centery < self.iceHoleY:
+                    self.rect.centery += 1
+                elif self.rect.centery > self.iceHoleY:
+                    self.rect.centery -= 1
                 angle = math.atan2(self.yVel, self.xVel)/math.pi*180 - 90
                 angle = -180 - angle
                 self.image = pygame.transform.scale(self.trueImage, (self.sideLen + 1, self.sideLen + 1))
@@ -167,6 +178,8 @@ class HoleInIce(pygame.sprite.Sprite):
         for currentP in playerz:
             if not currentP.airborne and distance(self.rect.centerx, self.rect.centery, currentP.rect.centerx, currentP.rect.centery, 37.5):
                 currentP.drowning = True
+                currentP.iceHoleX = self.rect.centerx
+                currentP.iceHoleY = self.rect.centery
 
     def changeLocation(self, otherHoles, otherPresents, players):
         newX = random.randint(0, windowWidth - 76)
