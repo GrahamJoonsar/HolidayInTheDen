@@ -59,11 +59,39 @@ class Penguin(pygame.sprite.Sprite):
         self.yVel = 0
         self.score = 0
         self.airborne = False
+        self.drowning = False
         self.color = SnowManColors[snowManNumber]
         self.touchdownTime = 50
         self.sideLen = 75
 
     def update(self, others):
+
+        if self.drowning:
+            if self.sideLen > 0:
+                self.sideLen -= 1
+                angle = math.atan2(self.yVel, self.xVel)/math.pi*180 - 90
+                angle = -180 - angle
+                self.image = pygame.transform.scale(self.trueImage, (self.sideLen + 1, self.sideLen + 1))
+                self.image = pygame.transform.rotate(self.image, angle)
+                temp = self.rect
+                self.rect = self.image.get_rect()
+                self.rect.centerx = temp.centerx
+                self.rect.centery = temp.centery
+
+            else: 
+                self.xVel = 0
+                self.yVel = 0
+                self.sideLen = 75
+                self.score -= 5
+                self.drowning = False
+                self.rect.center = (math.cos(2*math.pi/numOfPlayers*(self.number+1)) * 200 + windowWidth/2,
+                                    math.sin(2*math.pi/numOfPlayers*(self.number+1)) * 200 + windowHeight/2)
+
+
+            return
+
+
+
         if self.number < pygame.joystick.get_count():
             self.xVel += pygame.joystick.Joystick(self.number).get_axis(0) * 0.1
             self.yVel += pygame.joystick.Joystick(self.number).get_axis(1) * 0.1
@@ -107,7 +135,7 @@ class Penguin(pygame.sprite.Sprite):
         
         # Collision
         for otherSnowman in others:
-            if otherSnowman.number != self.number and self.airborne == otherSnowman.airborne:
+            if otherSnowman.number != self.number and self.airborne == otherSnowman.airborne and self.drowning == otherSnowman.drowning:
                 if distance(self.rect.centerx, self.rect.centery, otherSnowman.rect.centerx, otherSnowman.rect.centery) <= 50:
                     angle = math.atan2(self.rect.centery - otherSnowman.rect.centery, self.rect.centerx - otherSnowman.rect.centerx)
                     self.xVel = math.cos(angle) * bounciness
@@ -132,6 +160,11 @@ class HoleInIce(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         # Arranging the players in a circle
         self.rect.center = (1, 1)
+
+    def update(self, playerz):
+        for currentP in playerz:
+            if not currentP.airborne and distance(self.rect.centerx, self.rect.centery, currentP.rect.centerx, currentP.rect.centery) < 37.5:
+                currentP.drowning = True
 
     def changeLocation(self, otherHoles, otherPresents, players):
         newX = random.randint(0, windowWidth - 76)
@@ -281,6 +314,7 @@ while running:
             win.blit(s.image, s.rect)
 
     snowManList.update(snowManList)
+    holeList.update(snowManList)
     presentList.update(snowManList, holeList, presentList)
 
     pygame.display.update()
